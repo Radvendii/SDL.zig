@@ -1,10 +1,71 @@
 const std = @import("std");
 const build_options = @import("build_options");
 
-pub usingnamespace if (build_options.vulkan) @import("vulkan.zig") else struct {};
+// vulkan
 
-pub usingnamespace @import("sdl_image.zig");
-pub usingnamespace @import("sdl_ttf.zig");
+const vk = if (build_options.vulkan)
+    @import("vulkan")
+else
+    @compileError("vulkan not enabled in the build options");
+
+pub const SDL_vulkanInstance = vk.Instance;
+pub const SDL_vulkanSurface = vk.SurfaceKHR;
+
+pub extern fn SDL_Vulkan_LoadLibrary(path: ?[*:0]const u8) c_int;
+pub extern fn SDL_Vulkan_GetVkGetInstanceProcAddr() ?vk.PfnGetInstanceProcAddr;
+pub extern fn SDL_Vulkan_UnloadLibrary() void;
+pub extern fn SDL_Vulkan_GetInstanceExtensions(window: ?*SDL_Window, pCount: *c_uint, pNames: ?[*][*:0]const u8) SDL_bool;
+pub extern fn SDL_Vulkan_CreateSurface(window: *SDL_Window, instance: vk.Instance, surface: *vk.SurfaceKHR) SDL_bool;
+pub extern fn SDL_Vulkan_GetDrawableSize(window: *SDL_Window, w: ?*c_int, h: ?*c_int) void;
+
+// TTF
+
+pub const TTF_STYLE_NORMAL: c_int = 0x00;
+pub const TTF_STYLE_BOLD: c_int = 0x01;
+pub const TTF_STYLE_ITALIC: c_int = 0x02;
+pub const TTF_STYLE_UNDERLINE: c_int = 0x04;
+
+pub const TTF_Font = opaque {};
+
+pub extern fn TTF_Init() c_int;
+pub extern fn TTF_WasInit() c_int;
+pub extern fn TTF_Quit() void;
+
+pub const TTF_GetError = SDL_GetError;
+pub const TTF_SetError = SDL_SetError;
+
+pub extern fn TTF_OpenFont(file: [*c]const u8, point_size: c_int) ?*TTF_Font;
+pub extern fn TTF_OpenFontRW(src: *SDL_RWops, free_src: c_int, point_size: c_int) ?*TTF_Font;
+pub extern fn TTF_CloseFont(font: *TTF_Font) void;
+
+pub extern fn TTF_GetFontStyle(font: *TTF_Font) c_int;
+pub extern fn TTF_SetFontStyle(font: *TTF_Font, style: c_int) void;
+pub extern fn TTF_SetFontSize(font: *TTF_Font, point_size: c_int) void;
+pub extern fn TTF_FontHeight(font: *TTF_Font) c_int;
+
+pub extern fn TTF_SizeText(font: *TTF_Font, text: [*c]const u8, width: ?*c_int, height: ?*c_int) c_int;
+
+pub extern fn TTF_RenderText_Solid(font: *TTF_Font, text: [*c]const u8, foreground: SDL_Color) ?*SDL_Surface;
+
+pub extern fn TTF_RenderText_Shaded(
+    font: *TTF_Font,
+    text: [*c]const u8,
+    foreground: SDL_Color,
+    background: SDL_Color,
+) ?*SDL_Surface;
+
+pub extern fn TTF_RenderText_Blended(
+    font: *TTF_Font,
+    text: [*c]const u8,
+    foreground: SDL_Color,
+) ?*SDL_Surface;
+
+pub extern fn TTF_RenderText_Blended_Wrapped(
+    font: *TTF_Font,
+    text: [*c]const u8,
+    foreground: SDL_Color,
+    wrap_length: u32,
+) ?*SDL_Surface;
 
 pub const SDL_INIT_TIMER: u32 = 0x00000001;
 pub const SDL_INIT_AUDIO: u32 = 0x00000010;
@@ -2712,3 +2773,36 @@ pub const SDL_SysWMInfo = extern struct {
 };
 pub extern fn SDL_GetWindowWMInfo(window: *SDL_Window, info: *SDL_SysWMInfo) SDL_bool;
 pub extern fn SDL_SetMainReady() void;
+
+// Image
+
+pub const IMG_INIT_JPG: c_int = 1;
+pub const IMG_INIT_PNG: c_int = 2;
+pub const IMG_INIT_TIF: c_int = 4;
+pub const IMG_INIT_WEBP: c_int = 8;
+
+pub extern fn IMG_Init(flags: c_int) c_int;
+pub extern fn IMG_Quit() void;
+
+pub extern fn IMG_LoadTexture(renderer: ?*SDL_Renderer, file: [*c]const u8) ?*SDL_Texture;
+pub extern fn IMG_Load(file: [*:0]const u8) ?*SDL_Surface;
+
+pub extern fn IMG_LoadTyped_RW(rw: *SDL_RWops, freesrc: c_int, type: [*:0]const u8) ?*SDL_Surface;
+pub extern fn IMG_Load_RW(rw: *SDL_RWops, freesrc: c_int) ?*SDL_Surface;
+pub extern fn IMG_LoadBMP_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadCUR_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadGIF_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadICO_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadJPG_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadLBM_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadPCX_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadPNG_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadPNM_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadTGA_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadTIF_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadXCF_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadXPM_RW(rw: *SDL_RWops) ?*SDL_Surface;
+pub extern fn IMG_LoadXV_RW(rw: *SDL_RWops) ?*SDL_Surface;
+
+pub const IMG_SetError = SDL_SetError;
+pub const IMG_GetError = SDL_GetError;
